@@ -39,6 +39,10 @@ namespace FMS.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<ProductDto> CreateProduct( [FromBody] ProductDto product)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (product== null)
             {
                 return BadRequest(product);
