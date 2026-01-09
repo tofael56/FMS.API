@@ -1,5 +1,6 @@
 ﻿using FMS.API.Data;
 using FMS.API.Model;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FMS.API.Controllers
@@ -62,7 +63,7 @@ namespace FMS.API.Controllers
             //return the route of inserted data get
             return CreatedAtRoute("GetProduct", new { id = product.Id }, product);
         }
-        [HttpDelete("{id:int}",Name="DeleteProduct")]
+        [HttpDelete("{id:int}", Name = "DeleteProduct")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -81,12 +82,12 @@ namespace FMS.API.Controllers
             return NoContent();
         }
 
-        [HttpPut("{id:int}",Name ="UpdateProduct")]
+        [HttpPut("{id:int}", Name = "UpdateProduct")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult UpdateProduct(int id, [FromBody] ProductDto productDto)
         {
-            if(productDto == null && productDto.Id != id)
+            if (productDto == null && productDto.Id != id)
             {
                 return BadRequest();
             }
@@ -94,6 +95,27 @@ namespace FMS.API.Controllers
             produc.Name = productDto.Name;
             produc.Barcode = productDto.Barcode;
             produc.Code = productDto.Code;
+            return NoContent();
+        }
+        [HttpPatch("{id:int}",Name ="UpdatePartialproduct")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult UpdatePartialProduct(int id,JsonPatchDocument<ProductDto> patchDto)
+        {
+            if(patchDto==null && id == 0)
+            {
+                return BadRequest();
+            }
+            var produc = ProductStore.GetAllProducts.FirstOrDefault(x => x.Id == id);
+            if (produc == null)
+            {
+                return BadRequest();
+            }
+            patchDto.ApplyTo(produc, ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             return NoContent();
         }
     }
