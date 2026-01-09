@@ -10,6 +10,11 @@ namespace FMS.API.Controllers
     [ApiController]
     public class PeoductAPIController : Controller
     {
+        private readonly ILogger<PeoductAPIController> _logger;
+        public  PeoductAPIController(ILogger<PeoductAPIController> logger)
+        {
+            _logger = logger;
+        }
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<ProductDto>> GetProduct()
