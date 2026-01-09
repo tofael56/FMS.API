@@ -16,7 +16,7 @@ namespace FMS.API.Controllers
             return Ok(ProductStore.GetAllProducts);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}",Name ="GetProduct")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -34,7 +34,7 @@ namespace FMS.API.Controllers
             return Ok(data);
         }
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<ProductDto> CreateProduct( [FromBody] ProductDto product)
@@ -49,7 +49,8 @@ namespace FMS.API.Controllers
             }
             product.Id = ProductStore.GetAllProducts.OrderByDescending(x => x.Id).FirstOrDefault().Id + 1;
             ProductStore.GetAllProducts.Add(product);
-            return Ok(product);
+            //return the route of inserted data get
+            return CreatedAtRoute("GetProduct",new {id= product.Id}, product);
         }
     }
 }
