@@ -80,5 +80,21 @@ namespace FMS.API.Controllers
             ProductStore.GetAllProducts.Remove(product);
             return NoContent();
         }
+
+        [HttpPut("{id:int}",Name ="UpdateProduct")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult UpdateProduct(int id, [FromBody] ProductDto productDto)
+        {
+            if(productDto == null && productDto.Id != id)
+            {
+                return BadRequest();
+            }
+            var produc = ProductStore.GetAllProducts.FirstOrDefault(x => x.Id == id);
+            produc.Name = productDto.Name;
+            produc.Barcode = productDto.Barcode;
+            produc.Code = productDto.Code;
+            return NoContent();
+        }
     }
 }
