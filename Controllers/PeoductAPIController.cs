@@ -39,8 +39,14 @@ namespace FMS.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<ProductDto> CreateProduct( [FromBody] ProductDto product)
         {
-            if(!ModelState.IsValid)
+            //if(!ModelState.IsValid)
+            //{
+            //    return BadRequest(ModelState);
+            //}
+            //custome model stte validation
+            if (ProductStore.GetAllProducts.FirstOrDefault(x => x.Name.ToLower() == product.Name.ToLower())!=null)
             {
+                ModelState.AddModelError("", "Product Already Exists!");
                 return BadRequest(ModelState);
             }
             if (product== null)
