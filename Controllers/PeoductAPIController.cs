@@ -10,16 +10,18 @@ namespace FMS.API.Controllers
     [ApiController]
     public class PeoductAPIController : Controller
     {
+        private readonly ApplicationDbContext _db;
         private readonly ILogger<PeoductAPIController> _logger;
-        public  PeoductAPIController(ILogger<PeoductAPIController> logger)
+        public  PeoductAPIController(ILogger<PeoductAPIController> logger, ApplicationDbContext db)
         {
             _logger = logger;
+            _db = db;
         }
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<ProductDto>> GetProduct()
         {
-            return Ok(ProductStore.GetAllProducts);
+            return Ok(_db.Products.ToList());
         }
 
         [HttpGet("{id:int}", Name = "GetProduct")]
@@ -32,7 +34,7 @@ namespace FMS.API.Controllers
             {
                 return BadRequest();
             }
-            var data = ProductStore.GetAllProducts.FirstOrDefault(x => x.Id == id);
+            var data = _db.Products.FirstOrDefault(x => x.Id == id);
             if (data == null)
             {
                 return NotFound();
@@ -50,7 +52,7 @@ namespace FMS.API.Controllers
             //    return BadRequest(ModelState);
             //}
             //custome model stte validation
-            if (ProductStore.GetAllProducts.FirstOrDefault(x => x.Name.ToLower() == product.Name.ToLower()) != null)
+            if (_db.Products.FirstOrDefault(x => x.Name.ToLower() == product.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("", "Product Already Exists!");
                 return BadRequest(ModelState);
@@ -63,8 +65,16 @@ namespace FMS.API.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            product.Id = ProductStore.GetAllProducts.OrderByDescending(x => x.Id).FirstOrDefault().Id + 1;
-            ProductStore.GetAllProducts.Add(product);
+            ProductModel model = new()
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Code = product.Code,
+                Barcode = product.Barcode,
+
+            };
+            _db.Products.Add(model);
+            _db.SaveChanges();
             //return the route of inserted data get
             return CreatedAtRoute("GetProduct", new { id = product.Id }, product);
         }
@@ -78,12 +88,13 @@ namespace FMS.API.Controllers
             {
                 return BadRequest();
             }
-            var product = ProductStore.GetAllProducts.FirstOrDefault(x => x.Id == id);
+            var product = _db.Products.FirstOrDefault(x => x.Id == id);
             if (product == null)
             {
                 return NotFound();
             }
-            ProductStore.GetAllProducts.Remove(product);
+            _db.Products.Remove(product);
+            _db.SaveChanges();
             return NoContent();
         }
 
@@ -96,10 +107,15 @@ namespace FMS.API.Controllers
             {
                 return BadRequest();
             }
-            var produc = ProductStore.GetAllProducts.FirstOrDefault(x => x.Id == id);
-            produc.Name = productDto.Name;
-            produc.Barcode = productDto.Barcode;
-            produc.Code = productDto.Code;
+            ProductModel model = new()
+            {
+                Id = productDto.Id,
+                Name = productDto.Name,
+                Code = productDto.Code,
+                Barcode = productDto.Barcode,
+            };
+            _db.Products.Update(model);
+            _db.SaveChanges();
             return NoContent();
         }
         [HttpPatch("{id:int}",Name ="UpdatePartialproduct")]
@@ -111,12 +127,29 @@ namespace FMS.API.Controllers
             {
                 return BadRequest();
             }
-            var produc = ProductStore.GetAllProducts.FirstOrDefault(x => x.Id == id);
+            var produc = _db.Products.FirstOrDefault(x => x.Id == id);
+            ProductDto modelDto = new()
+            {
+                Id = produc.Id,
+                Name = produc.Name,
+                Code = produc.Code,
+                Barcode = produc.Barcode,
+            };
+
             if (produc == null)
             {
                 return BadRequest();
             }
-            patchDto.ApplyTo(produc, ModelState);
+            patchDto.ApplyTo(modelDto, ModelState);
+            ProductModel productModel = new()
+            {
+                Id = modelDto.Id,
+                Name = modelDto.Name,
+                Code = modelDto.Code,
+                Barcode = modelDto.Barcode,
+            };
+            _db.Products.Update(productModel);
+            _db.SaveChanges();
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
